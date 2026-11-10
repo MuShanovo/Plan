@@ -1,0 +1,54 @@
+电子信息工程 · 生涯规划（PWA 版）
+=====================================
+
+一、包里有什么
+  index.html          应用本体（所有功能与数据逻辑都在里面）
+  manifest.json       安装配置（名称、图标、启动方式）
+  sw.js               离线缓存，装好后断网也能打开
+  icons/              桌面图标
+  使用说明.txt        本文件
+
+上传时请保持这个目录结构：index.html 在最外层，icons 文件夹和它并列。
+
+
+二、上线（二选一，都免费）
+
+方式 A：Netlify Drop（最快，不用 Git）
+  1. 电脑浏览器打开 https://app.netlify.com/drop
+  2. 把本文件夹（或整个 zip）直接拖进页面
+  3. 等十几秒，得到一个 https://xxxx.netlify.app 网址
+  4. 想长期用就注册一个免费账号，把这个站点认领下来，网址就不会过期
+
+方式 B：GitHub Pages（网址固定，国内可访问）
+  1. 注册/登录 github.com，点 New repository，名字随意，选 Public，创建
+  2. 在仓库里点 Add file → Upload files，把 index.html、manifest.json、sw.js、
+     icons 文件夹一起拖进去，Commit
+  3. 进 Settings → Pages，Source 选 Deploy from a branch，
+     Branch 选 main、目录选 /(root)，Save
+  4. 等 1 分钟，页面顶部出现 https://你的用户名.github.io/仓库名/
+  5. 用这个网址访问即可
+
+  提示：手机操作不方便的话，用电脑上传最省事。国内访问 github.io 偶尔慢，
+  可以改用 Gitee：新建仓库上传同样文件，服务 → Gitee Pages → 启动（需实名）。
+
+
+三、装到手机桌面
+
+  iPhone / iPad：用 Safari 打开上面的网址 → 点底部「分享」→「添加到主屏幕」→ 添加
+  安卓：用 Chrome 或系统浏览器打开 → 右上角「⋮」→「安装应用」/「添加到主屏幕」
+  微信内打开：点右上角「…」→「在浏览器打开」，再按上面的步骤
+
+  装好后图标会出现在桌面，点开是全屏、没有地址栏，断网也能用。
+  应用里「我的 → 安装到桌面」也有同样的图文提示。
+
+
+四、数据说明
+
+  记录、勾选、笔记都保存在手机浏览器本地（localStorage），不上传任何服务器。
+  清除浏览器数据、卸载应用或换手机，数据会丢失。重要内容建议定期复制留存。
+
+
+五、以后想改内容
+
+  改 index.html 后重新上传覆盖即可。如果发现手机上还是旧版本，
+  把 sw.js 第一行的 CACHE = 'eie-career-v1' 改成 v2、v3 再上传，可强制刷新缓存。
