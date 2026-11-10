@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#16224a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="生涯规划">
+<meta name="format-detection" content="telephone=no">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%2316224a'/%3E%3Ctext x='32' y='42' font-size='24' font-family='sans-serif' font-weight='700' fill='%23fff' text-anchor='middle'%3EEE%3C/text%3E%3C/svg%3E">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<title>生涯规划</title>
+<style>
+/* SECTION: base */
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0}
+body{
+  font-family:system-ui,-apple-system,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  background:#0e1730;color:#161d2f;-webkit-font-smoothing:antialiased;overflow:hidden;
+}
+:root{
+  --ink:#131a2b;--muted:#6b7488;--line:#e8ebf3;--card:#fff;
+  --navy:#16224a;--blue:#2f5cff;--amber:#f5a524;--green:#12a06a;
+}
+button{font-family:inherit;border:none;background:none;color:inherit}
+input,select,textarea{font-family:inherit}
+/* SECTION: phone shell */
+#phone{
+  position:relative;height:100dvh;max-width:520px;margin:0 auto;background:#f4f6fb;
+  display:flex;flex-direction:column;overflow:hidden;
+}
+@media (min-width:600px){
+  body{display:flex;align-items:center;justify-content:center;
+    background:radial-gradient(800px 500px at 20% 0%,#1b2a57 0%,#0b1226 60%),#0b1226}
+  #phone{height:min(900px,calc(100dvh - 44px));border-radius:38px;box-shadow:0 40px 90px rgba(0,0,0,.5),0 0 0 10px #0a0f1e,0 0 0 11px #26314d}
+}
+/* SECTION: splash */
+#splash{
+  position:absolute;inset:0;z-index:90;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+  background:linear-gradient(160deg,#16224a 0%,#1d2f6b 55%,#2f5cff 130%);
+  color:#fff;transition:opacity .5s ease, transform .5s ease;
+}
+#splash.hide{opacity:0;transform:scale(1.03);pointer-events:none}
+.splash-logo{
+  width:74px;height:74px;border-radius:22px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);
+  display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;letter-spacing:1px;
+  box-shadow:0 12px 30px rgba(0,0,0,.25);
+}
+#splash h1{margin:0;font-size:21px;letter-spacing:2px;font-weight:600}
+#splash p{margin:0;font-size:11.5px;color:#a9b8e8;letter-spacing:2.5px}
+.splash-line{width:34px;height:2px;border-radius:2px;background:rgba(255,255,255,.35);margin-top:4px}
+/* SECTION: topbar */
+header{
+  position:relative;z-index:10;flex:0 0 auto;padding:calc(12px + env(safe-area-inset-top)) 18px 10px;
+  background:linear-gradient(180deg,#16224a 0%,#1b2a5c 100%);color:#fff;
+}
+.greet-row{display:flex;align-items:flex-start;gap:10px}
+.greet{min-width:0;flex:1}
+.greet small{display:block;font-size:11px;color:#9fb0e6;letter-spacing:1.2px}
+.greet b{display:block;font-size:16px;margin-top:3px;letter-spacing:.3px;font-weight:600}
+.greet span{display:block;font-size:11px;color:#8fa2d8;margin-top:4px}
+.grade-chip{
+  flex:0 0 auto;display:flex;align-items:center;gap:6px;border-radius:999px;padding:7px 11px;
+  background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.16);color:#eef2ff;font-size:12px;font-weight:600;min-height:34px;
+}
+.grade-chip:active{transform:scale(.97)}
+.dot-live{width:6px;height:6px;border-radius:50%;background:#3ddc97;box-shadow:0 0 0 3px rgba(61,220,151,.18)}
+/* SECTION: screen */
+#screen{
+  flex:1 1 auto;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;
+  padding:14px 16px calc(18px + env(safe-area-inset-bottom));scroll-behavior:auto;
+}
+.view{display:flex;flex-direction:column;gap:13px;animation:in .26s cubic-bezier(.2,.8,.2,1)}
+@keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.card{background:var(--card);border-radius:18px;padding:16px;border:1px solid rgba(230,233,242,.9);box-shadow:0 2px 10px rgba(22,34,74,.04)}
+.card-h{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.card-h h3{margin:0;font-size:14.5px;letter-spacing:.2px}
+.card-h .sub{margin-left:auto;font-size:11.5px;color:var(--muted);font-weight:500;white-space:nowrap}
+/* SECTION: hero */
+.hero{position:relative;overflow:hidden;border-radius:22px;padding:18px;color:#fff;
+  background:linear-gradient(145deg,#141f45 0%,#1e2f6e 55%,#2f5cff 125%);box-shadow:0 14px 30px rgba(22,34,74,.22)}
+.hero::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.55;
+  background-image:repeating-linear-gradient(90deg,rgba(255,255,255,.05) 0 1px,transparent 1px 24px),
+                   repeating-linear-gradient(0deg,rgba(255,255,255,.04) 0 1px,transparent 1px 24px);
+  mask-image:linear-gradient(160deg,#000 0%,transparent 70%);-webkit-mask-image:linear-gradient(160deg,#000 0%,transparent 70%)}
+.hero-top{position:relative;z-index:1;display:flex;gap:12px;align-items:flex-start}
+.hero-main{flex:1;min-width:0}
+.eyebrow{font-size:10.5px;letter-spacing:1.4px;color:#a9bcff;font-weight:600}
+.hero h2{margin:6px 0 4px;font-size:23px;line-height:1.22;letter-spacing:.4px}
+.hero .theme{font-size:12px;color:#c6d2f7;line-height:1.55}
+.ring-wrap{flex:0 0 auto;width:70px;height:70px}
+.ring{width:70px;height:70px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  background:conic-gradient(#ffb020 0%,rgba(255,255,255,.16) 0);transition:background .6s ease}
+.ring-in{width:55px;height:55px;border-radius:50%;background:#1a2757;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring-in b{font-size:14px}
+.ring-in span{font-size:9px;color:#9fb0e6;letter-spacing:.5px;margin-top:1px}
+.hero-meta{position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:7px;margin-top:14px}
+.pill{font-size:10.5px;padding:5px 8px;border-radius:8px;background:rgba(255,255,255,.12);color:#dfe6ff;border:1px solid rgba(255,255,255,.09);white-space:nowrap}
+.hero-bar{position:relative;z-index:1;margin-top:13px}
+.bar-track{height:5px;border-radius:99px;background:rgba(255,255,255,.18);overflow:hidden}
+.bar-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,#ffc65c,#f5a524);transition:width .5s ease}
+.bar-cap{display:flex;justify-content:space-between;font-size:10px;color:#a9b8e8;margin-top:6px}
+/* SECTION: advice */
+.advice{background:linear-gradient(180deg,#fffdf7,#fff);border-color:#f6e4c2}
+.advice-tag{font-size:10px;font-weight:700;letter-spacing:.8px;color:#b4740c;background:#fff3dc;border-radius:6px;padding:3px 6px}
+.advice-list{display:flex;flex-direction:column;gap:9px}
+.advice-item{display:flex;gap:9px;font-size:13px;line-height:1.62;color:#2b3145}
+.advice-item i{flex:0 0 auto;width:16px;height:16px;border-radius:50%;background:#fff0d2;color:#b4740c;font-size:9.5px;font-style:normal;font-weight:700;display:flex;align-items:center;justify-content:center;margin-top:2px}
+.ghost-btn{border:1px solid #eadfc8;background:#fff;color:#8a6415;border-radius:999px;padding:5px 10px;font-size:11px;font-weight:600;min-height:30px}
+.ghost-btn:active{transform:scale(.97)}
+/* SECTION: tasks */
+.progress-line{display:flex;align-items:center;gap:9px;margin-bottom:10px}
+.mini-track{flex:1;height:6px;border-radius:99px;background:#eef1f8;overflow:hidden;min-width:0}
+.mini-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,#2f5cff,#6f8dff);transition:width .35s ease}
+.progress-line b{font-size:11px;color:var(--muted);font-weight:600;white-space:nowrap}
+.task{display:flex;gap:10px;padding:9px 0;align-items:flex-start;border-bottom:1px dashed #eef0f7}
+.task:last-child{border-bottom:none;padding-bottom:2px}
+.task:first-child{padding-top:2px}
+.cbox{flex:0 0 auto;width:20px;height:20px;border-radius:6px;border:1.5px solid #ccd3e5;background:#fff;margin-top:1px;
+  display:flex;align-items:center;justify-content:center;transition:.18s}
+.cbox svg{opacity:0;transition:.18s}
+.cbox.on{background:var(--blue);border-color:var(--blue)}
+.cbox.on svg{opacity:1}
+.task p{margin:0;font-size:13px;line-height:1.6;color:#232a3d}
+.task.done p{color:#98a0b3;text-decoration:line-through;text-decoration-color:#c9cfdd}
+/* SECTION: stage segmented */
+.seg{display:flex;gap:7px;overflow-x:auto;padding:2px 0 4px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.seg::-webkit-scrollbar{display:none}
+.seg button{flex:0 0 auto;border-radius:999px;padding:8px 14px;font-size:12.5px;font-weight:600;
+  background:#fff;color:#657088;border:1px solid #e3e7f2;min-height:36px;display:flex;align-items:center;gap:6px}
+.seg button.on{background:#16224a;border-color:#16224a;color:#fff}
+.seg button i{width:5px;height:5px;border-radius:50%;background:#f5a524;display:none}
+.seg button.now i{display:block}
+.stage-hero{display:flex;align-items:center;gap:11px;margin-bottom:4px}
+.stage-badge{flex:0 0 auto;width:42px;height:42px;border-radius:13px;background:linear-gradient(140deg,#16224a,#2f5cff);color:#fff;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:8.5px;line-height:1.15}
+.stage-badge b{font-size:13px}
+.stage-title{flex:1;min-width:0}
+.stage-title b{display:block;font-size:16px}
+.stage-title small{display:block;font-size:11px;color:var(--muted);margin-top:3px}
+.state-tag{flex:0 0 auto;font-size:10px;font-weight:700;padding:4px 7px;border-radius:6px;background:#fff3dc;color:#b4740c}
+.state-tag.past{background:#f1f3f9;color:#8a92a6}
+.state-tag.next{background:#eef2ff;color:#4a63b8}
+.goal{font-size:12.5px;line-height:1.72;color:#333c53;margin:12px 0 0;background:#f8f9fd;border-radius:11px;padding:11px 12px}
+.goal b{color:#16224a}
+.sec{margin-top:15px}
+.sec-t{font-size:11.5px;font-weight:700;letter-spacing:.5px;color:#6d7891;display:flex;align-items:center;gap:6px;margin-bottom:7px}
+.sec-t::before{content:"";width:3px;height:11px;border-radius:2px;background:#2f5cff;opacity:.65}
+.sec ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px}
+.sec li{font-size:12.5px;line-height:1.65;color:#39415a;padding-left:12px;position:relative}
+.sec li::before{content:"";position:absolute;left:0;top:7px;width:4px;height:4px;border-radius:50%;background:#c3cce3}
+.sec.warn li::before{background:#f0b26a}
+/* SECTION: composer */
+.ta{width:100%;border:1px solid #e4e8f3;border-radius:12px;background:#fbfcff;padding:11px 12px;
+  font-size:16px;line-height:1.6;color:#1d2539;resize:vertical;min-height:84px;outline:none;transition:.18s}
+.ta:focus{border-color:#b9c8ff;background:#fff;box-shadow:0 0 0 3px rgba(47,92,255,.08)}
+.ta::placeholder{color:#a8b0c4}
+.composer-foot{display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap}
+.hint{font-size:10.5px;color:var(--muted);line-height:1.5}
+.primary{margin-left:auto;border-radius:10px;background:linear-gradient(135deg,#2f5cff,#2148d8);color:#fff;
+  font-size:13px;font-weight:600;padding:11px 16px;min-height:42px;box-shadow:0 6px 14px rgba(47,92,255,.24)}
+.primary:active{transform:scale(.98)}
+.primary[disabled]{opacity:.45;box-shadow:none}
+/* SECTION: records */
+.chips{display:flex;gap:7px;flex-wrap:wrap}
+.chip{border:1px solid #e3e7f2;background:#fff;color:#657088;border-radius:999px;padding:6px 11px;font-size:11.5px;font-weight:600;min-height:32px}
+.chip.on{background:#16224a;border-color:#16224a;color:#fff}
+.rec{display:flex;gap:10px;padding:11px 0;border-bottom:1px dashed #eef0f7}
+.rec:last-child{border-bottom:none;padding-bottom:0}
+.rec-date{flex:0 0 auto;width:42px;text-align:center}
+.rec-date b{display:block;font-size:14px;color:#2b3550}
+.rec-date span{display:block;font-size:9px;color:#9aa2b6;margin-top:1px}
+.rec-body{flex:1;min-width:0}
+.rec-body p{margin:0;font-size:12.5px;line-height:1.66;color:#2b3247;white-space:pre-wrap;word-break:break-word}
+.rec-body .tag{display:inline-block;font-size:9px;color:#5b6a8f;background:#f0f3fb;border-radius:4px;padding:2px 5px;margin-bottom:4px}
+.del{color:#b6bdcf;font-size:16px;line-height:1;padding:2px 0 2px 4px}
+.empty{text-align:center;padding:20px 6px;color:#9aa2b6;font-size:12px;line-height:1.7;white-space:pre-line}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.stat{background:#f8f9fd;border:1px solid #eef1f9;border-radius:12px;padding:11px 8px;text-align:center;min-width:0}
+.stat b{display:block;font-size:18px;color:#16224a}
+.stat span{display:block;font-size:10px;color:var(--muted);margin-top:3px}
+/* SECTION: me */
+.setting-row{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid #f1f3f9}
+.setting-row:last-child{border-bottom:none;padding-bottom:2px}
+.setting-row:first-child{padding-top:2px}
+.setting-row .t{font-size:13px;font-weight:600}
+.setting-row .d{font-size:10.5px;color:var(--muted);margin-top:2px;line-height:1.5}
+.setting-row .v{margin-left:auto;font-size:12px;color:#4d5a78;font-weight:600;white-space:nowrap}
+.text-btn{margin-left:auto;color:#d14747;font-size:12px;font-weight:600;padding:8px 0 8px 8px}
+.stage-prog{padding:9px 0}
+.stage-prog .sp-top{display:flex;align-items:center;gap:8px;font-size:12px}
+.stage-prog .sp-top b{font-weight:600;color:#2b3550}
+.stage-prog .sp-top span{margin-left:auto;font-size:10.5px;color:#8a92a6}
+.stage-prog .mini-track{margin-top:7px}
+.about{font-size:11.5px;line-height:1.8;color:#7a8397}
+/* SECTION: tabbar */
+.tabbar{
+  flex:0 0 auto;display:flex;background:rgba(255,255,255,.97);border-top:1px solid #e9ecf5;
+  padding:7px 6px calc(7px + env(safe-area-inset-bottom));
+}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:5px 2px;color:#9aa2b6;min-height:48px;justify-content:center;border-radius:10px}
+.tab svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.tab span{font-size:10px;font-weight:600}
+.tab.on{color:#1f3fd6}
+.tab:active{background:#f3f5fc}
+/* SECTION: sheet */
+.sheet{position:absolute;inset:0;z-index:70;display:none}
+.sheet.show{display:block}
+.sheet-mask{position:absolute;inset:0;background:rgba(14,20,38,.44);animation:fade .2s ease}
+.sheet-panel{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:22px 22px 0 0;
+  padding:20px 20px calc(18px + env(safe-area-inset-bottom));animation:up .26s cubic-bezier(.2,.8,.2,1)}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes up{from{transform:translateY(40px);opacity:.5}to{transform:translateY(0);opacity:1}}
+.sheet-panel h4{margin:0 0 4px;font-size:16px}
+.sheet-panel .sd{font-size:11.5px;color:var(--muted);line-height:1.6;margin:0 0 14px}
+.sheet-panel select{width:100%;border:1px solid #e2e7f3;border-radius:11px;padding:12px;font-size:16px;background:#fbfcff;color:#1d2539;outline:none;min-height:46px}
+.sheet-actions{display:flex;gap:10px;margin-top:16px}
+.btn-ghost{flex:1;border:1px solid #e2e7f3;background:#fff;border-radius:11px;padding:12px;font-size:13.5px;font-weight:600;color:#5b6478;min-height:46px}
+.btn-solid{flex:1.4;border-radius:11px;padding:12px;font-size:13.5px;font-weight:600;color:#fff;background:linear-gradient(135deg,#2f5cff,#2148d8);min-height:46px}
+.toast{position:absolute;left:50%;bottom:88px;transform:translateX(-50%) translateY(8px);z-index:80;
+  background:rgba(22,34,74,.94);color:#fff;font-size:12px;padding:10px 15px;border-radius:10px;opacity:0;
+  pointer-events:none;transition:.24s ease;max-width:78%;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<!-- SECTION: shell -->
+<div id="phone">
+  <div id="splash">
+    <div class="splash-logo">EE</div>
+    <h1>生涯规划</h1>
+    <p>FPGA · 嵌入式 · 本科就业</p>
+    <div class="splash-line"></div>
+  </div>
+
+  <header>
+    <div class="greet-row">
+      <div class="greet">
+        <small id="greetWord">上午好</small>
+        <b id="greetTitle">今天推进一点就好</b>
+        <span id="greetDate">11月10日 · 大一上学期</span>
+      </div>
+      <button class="grade-chip" id="gradeBtn" type="button">
+        <span class="dot-live" aria-hidden="true"></span>
+        <span id="gradeChipTxt">大一</span>
+      </button>
+    </div>
+  </header>
+
+  <main id="screen"></main>
+
+  <nav class="tabbar" id="tabbar">
+    <button class="tab on" type="button" data-tab="home">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.5 12 4l8 6.5"/><path d="M6 9.8V20h12V9.8"/><path d="M10 20v-5h4v5"/></svg>
+      <span>今日</span>
+    </button>
+    <button class="tab" type="button" data-tab="stages">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 4.5-8 4.5-8-4.5L12 3Z"/><path d="m4 12 8 4.5 8-4.5"/><path d="m4 16.5 8 4.5 8-4.5"/></svg>
+      <span>阶段</span>
+    </button>
+    <button class="tab" type="button" data-tab="records">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4.5h11l3 3V20H5V4.5Z"/><path d="M8 10h8M8 13.5h8M8 17h5"/></svg>
+      <span>记录</span>
+    </button>
+    <button class="tab" type="button" data-tab="me">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c.8-3.6 3.6-5.5 7-5.5s6.2 1.9 7 5.5"/></svg>
+      <span>我的</span>
+    </button>
+  </nav>
+
+  <div class="sheet" id="sheet">
+    <div class="sheet-mask" data-close="1"></div>
+    <div class="sheet-panel">
+      <h4>设定入学年份</h4>
+      <p class="sd">按入学年份自动判断年级并进入对应阶段。9 月为新学年起点。</p>
+      <select id="yearSelect" aria-label="入学年份"></select>
+      <div class="sheet-actions">
+        <button class="btn-ghost" type="button" data-close="1">取消</button>
+        <button class="btn-solid" type="button" id="saveYear">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+/* SECTION: data */
+var DATA = [
+  {
+    id: 's1', grade: '大一', name: '地基期',
+    theme: '数理 + C / C++ + 数电 + FPGA 入门',
+    period: '现在 — 大一结束',
+    goal: '把龙芯班的 FPGA 学「吃透」而不是「学完」，同时补上 C / C++ 与数电这两块 FPGA 和嵌入式共用的地基。',
+    tasks: [
+      '高数、线代、大物跟紧，不挂科',
+      'C++ 课练透指针、结构体、位运算',
+      '数电：组合逻辑、时序逻辑、触发器、状态机',
+      '把 5 条指令 CPU 扩到 8 条以上并跑通仿真',
+      '独立完成一个 500 行左右的 C++ 小项目',
+      '每个实验写一段「为什么这么写」的复盘'
+    ],
+    sections: [
+      { t: '课程重点', items: ['高等数学、线性代数、大学物理：后续数电、信号与系统、DSP 的数学地基', 'C++ 程序设计（a）：培养方案里的第一门编程课，正好当编程地基', '计算机科学导论：建立计算机系统的整体视角'] },
+      { t: '技术清单', items: ['C++ 语法、指针、结构体、位运算', '组合逻辑与时序逻辑、触发器、状态机', 'Verilog 基础与仿真工具使用', '读懂简单数据手册与时序图'] },
+      { t: '项目阶梯', items: ['L0：扩展版小 CPU（加指令、加简单外设）', 'L1：成绩管理系统或命令行小工具'] },
+      { t: '竞赛与机会', items: ['大一以观赛、旁听为主，先积累手感', '主动向方淼老师询问竞赛机会', '争取进实验室跟项目、熟悉设备'] },
+      { t: '避坑提醒', warn: true, items: ['只抄教程不理解底层，等于白学——每行代码都要说得清为什么', '别同时铺嵌入式、FPGA、Linux 三条线', 'FPGA 还没入门就急着学 Linux 驱动'] }
+    ],
+    result: ['一个可演示的扩展版小 CPU，附说明文档', '能独立写出 500 行左右的 C / C++ 程序'],
+    checkpoints: ['能独立写出 500 行左右的 C / C++ 程序', '扩展版 CPU 能仿真或上板演示，讲得清指令流程', '数电实验能独立完成并画出时序图'],
+    advice: {
+      early: ['先把 C++ 指针和数电时序打通，这两块是 FPGA 与嵌入式共用的地基。', '别急着选方向：先把一条线走通，兴趣会在动手里变清晰。'],
+      mid: ['CPU 指令先扩到 8 条并跑通仿真，再谈上板——先求对，再求快。', '每学一个模块，试着用自己的话讲一遍，讲不清就是没懂。'],
+      late: ['大一收尾：把 CPU 项目写成一份复盘，面试就从这里开始。', '期末前把数电错题过一遍，别让基础课拖后腿。']
+    }
+  },
+  {
+    id: 's2', grade: '大二', name: '嵌入式攻坚期',
+    theme: 'C 精通 + STM32 + 外设协议 + 硬件调试',
+    period: '大二全年',
+    goal: '整年主攻嵌入式，把 C 语言、单片机、外设和调试练到「熟练」，为第三年的软硬结合打底。',
+    tasks: [
+      'C 进阶：中断、寄存器、位运算、内存、volatile / static',
+      '从 51 过渡到 STM32，打通 GPIO / 定时器 / PWM / ADC / 串口',
+      'SPI、I2C、UART 能手写时序、看懂波形、调通驱动',
+      '学会用万用表、示波器、逻辑分析仪定位问题',
+      '完成 1–2 个完整的 STM32 项目',
+      '参加电赛或蓝桥杯嵌入式组'
+    ],
+    sections: [
+      { t: '技术清单', items: ['嵌入式 C 工程写法：volatile、寄存器操作、位运算', 'STM32 外设：GPIO、定时器、PWM、ADC、串口', '通信协议：SPI / I2C / UART 时序与驱动', '调试工具：万用表、示波器、逻辑分析仪', '电路基础与焊接，看得懂原理图'] },
+      { t: '项目阶梯', items: ['L2：STM32 环境监测 / 数据采集（温湿度光照 + 显示 + 上位机）', 'L3：加电机控制或蓝牙 / WiFi 的智能小装置'] },
+      { t: '竞赛与机会', items: ['全国大学生电子设计竞赛：大二暑假，与方向最对口', '蓝桥杯嵌入式设计与开发：门槛低，检验基本功', '大二起主动联系老师进实验室'] },
+      { t: '避坑提醒', warn: true, items: ['嵌入式别只顾写代码，忽略电路和信号调试，一上板就懵', '别把项目做成「跑通例程」，要自己改需求、加功能', '协议不能只会调库，要能手写时序'] }
+    ],
+    result: ['1–2 个完整 STM32 项目', '至少一次竞赛参赛经历', '能用示波器独立定位常见硬件问题'],
+    checkpoints: ['1–2 个 STM32 项目可演示，讲得清外设配置', '能对着波形定位一个真实硬件问题', '至少完整参加一次竞赛并备赛到底'],
+    advice: {
+      early: ['STM32 先啃 GPIO、定时器、串口，三个通了再碰复杂协议。', '今年只主攻嵌入式一条线，FPGA 先保温不加深。'],
+      mid: ['SPI / I2C / UART 必须能手写时序、看波形，这是面试高频考点。', '调不通时先测信号再看代码——硬件问题往往没有报错。'],
+      late: ['该报名电赛了：暑假整块时间做一个完整项目，胜过零散学三个月。', '把这一年的项目整理成两份复盘，年底就能直接写进简历。']
+    }
+  },
+  {
+    id: 's3', grade: '大三', name: 'FPGA 深化 + 软硬结合',
+    theme: 'Verilog / 时序分析 / 代表作 / 暑期实习',
+    period: '大三全年',
+    goal: '把 FPGA 从「入门」推到「能独立做项目」，做出一个足以支撑面试的软硬结合代表作，同时拿下暑期实习。',
+    tasks: [
+      'Verilog 规范书写，分清可综合与不可综合',
+      '会写 Testbench，能做仿真验证',
+      '时序分析：建立 / 保持时间、时钟约束、跨时钟域',
+      '常用接口：UART、SPI、I2C、VGA / HDMI、DDR',
+      '补一端软件：FreeRTOS 或 Linux 驱动入门',
+      '完成 FPGA + STM32 的高速采集代表作',
+      '投递暑期实习（芯片公司 / 硬件厂 / 国企技术岗）'
+    ],
+    sections: [
+      { t: '技术清单', items: ['Verilog / SystemVerilog 规范写法与仿真', '时序分析：建立保持时间、时钟约束、跨时钟域处理', '常用 IP：UART、SPI、I2C、VGA / HDMI、DDR 控制器', '软件侧二选一：FreeRTOS 任务调度或 Linux 驱动入门'] },
+      { t: '项目阶梯', items: ['L4：FPGA 高速数据采集（采集 → 通信 → STM32 / 上位机闭环）', 'L5：图像采集显示、数字滤波器、进阶 CPU，用于竞赛与毕设'] },
+      { t: '竞赛与机会', items: ['龙芯杯 CPU 设计赛：与龙芯班背景直接对口，冲奖性价比高', '集创赛、FPGA 创新设计竞赛：深化方向、积累项目', '大三暑假前必须投出实习，实习对秋招至关重要'] },
+      { t: '避坑提醒', warn: true, items: ['FPGA 别只看功能，时序才是关键', '代表作别堆功能，要能画出架构图、讲清数据流', '实习别拖到大四才找，好岗位提前半年锁'] }
+    ],
+    result: ['1 个软硬结合代表作', '竞赛奖项', '一段暑期实习经历'],
+    checkpoints: ['代表作能画出架构图并讲清数据流', '能独立完成一次时序约束并收敛', '大三暑假前拿到实习机会'],
+    advice: {
+      early: ['Verilog 写规范、会写 Testbench，比多写几个模块更值钱。', '把时序分析当成主线，别等上板出问题才补。'],
+      mid: ['时序才是 FPGA 的关键：先做时钟约束，再谈功能扩展。', '代表作先定架构再写代码，返工代价会小很多。'],
+      late: ['代表作要讲得透：功能多不如一条数据流说得清。', '三月起盯暑期实习，实习对秋招的加成大于再多一个项目。']
+    }
+  },
+  {
+    id: 's4', grade: '大四', name: '求职落地期',
+    theme: '简历 / 面试 / 秋招 / 毕设',
+    period: '大四全年',
+    goal: '秋招拿到心仪 offer，并用毕业设计把这四年的沉淀再打磨一遍。',
+    tasks: [
+      '7–9 月投递央国企、芯片公司、硬件厂技术岗',
+      '简历整理成「项目 + 竞赛 + 实习」三件套',
+      '复习数模电、电路原理、C 语言、SPI / I2C / UART',
+      '每个项目按「背景 — 方案 — bug — 定位」写成复盘',
+      '把大三代表作深化为毕业设计',
+      '对比央国企与私企，做 offer 取舍'
+    ],
+    sections: [
+      { t: '秋招节奏', items: ['7–9 月：投递与笔试高峰，简历这之前必须定稿', '9–11 月：面试密集期，按项目逐个准备追问', '次年春招：补录与保底机会'] },
+      { t: '面试复习重点', items: ['数模电、电路原理：电子信息类的本钱', 'C 语言、SPI / I2C / UART 协议细节', '读芯片手册的能力：能独立看 datasheet 上手调试', '调试思维：没报错的硬件问题怎么定位'] },
+      { t: '毕业设计', items: ['直接把大三软硬结合项目深化为毕设，省力又能再打磨代表作', '毕设要留出联调时间，别把进度压到最后一个月'] },
+      { t: '选择与取舍', items: ['央国企：稳定、节奏慢，技术栈可能偏窄', '私企 / 芯片公司：成长快、强度大', '按自己想要的生活节奏选，不必只看起薪'] },
+      { t: '避坑提醒', warn: true, items: ['简历堆名词但经不起追问，比空白更减分', '只背八股不讲项目，面试官一问就露底', '秋招期间别停下手上项目，进展也是谈资'] }
+    ],
+    result: ['秋招 offer', '毕业设计完成'],
+    checkpoints: ['简历三件套齐全，每项都能被追问三层', '准备至少 3 个可讲的 debug 故事', '秋招拿到 offer，毕设按期推进'],
+    advice: {
+      early: ['7–9 月是秋招窗口，简历三件套这周就该定稿。', '先投 10 家练手，面试手感是投出来的。'],
+      mid: ['面试官会顺着项目挖数模电和协议，按项目逐个复习。', '每场面试后记下被问倒的问题，三天内补齐。'],
+      late: ['毕设直接深化大三代表作，省力又能再打磨一遍。', 'offer 取舍看长期：方向、团队、城市，别只看起薪。']
+    }
+  }
+];
+
+var KEY = 'eie-career-plan-v1';
+
+/* SECTION: state */
+function academicStartYear(d) {
+  d = d || new Date();
+  return d.getMonth() >= 8 ? d.getFullYear() : d.getFullYear() - 1;
+}
+function defaultState() {
+  return { enrollYear: academicStartYear(), tab: 'home', records: [], checks: {}, notes: {}, tipOffset: 0,
+    viewStage: null, filter: 'all' };
+}
+var state = loadState();
+function loadState() {
+  try {
+    var raw = localStorage.getItem(KEY);
+    if (!raw) return defaultState();
+    var s = JSON.parse(raw), base = defaultState();
+    for (var k in base) if (!(k in s)) s[k] = base[k];
+    if (!Array.isArray(s.records)) s.records = [];
+    if (!s.checks || typeof s.checks !== 'object') s.checks = {};
+    if (!s.notes || typeof s.notes !== 'object') s.notes = {};
+    s.tab = 'home';
+    return s;
+  } catch (e) { return defaultState(); }
+}
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+}
+
+/* SECTION: helpers */
+function h(tag, cls, text) {
+  var e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text !== undefined && text !== null) e.textContent = text;
+  return e;
+}
+function svgCheck() {
+  var ns = 'http://www.w3.org/2000/svg';
+  var s = document.createElementNS(ns, 'svg');
+  s.setAttribute('viewBox', '0 0 12 12');
+  s.setAttribute('width', '11');
+  s.setAttribute('height', '11');
+  var p = document.createElementNS(ns, 'path');
+  p.setAttribute('d', 'M2 6.2 4.7 9 10 3.4');
+  p.setAttribute('fill', 'none');
+  p.setAttribute('stroke', '#fff');
+  p.setAttribute('stroke-width', '1.9');
+  p.setAttribute('stroke-linecap', 'round');
+  p.setAttribute('stroke-linejoin', 'round');
+  s.appendChild(p);
+  return s;
+}
+function currentIndex() {
+  var g = academicStartYear() - state.enrollYear + 1;
+  if (g < 1) g = 1;
+  if (g > 4) g = 4;
+  return g - 1;
+}
+function isGraduated() { return academicStartYear() - state.enrollYear + 1 > 4; }
+function stageRange(i) {
+  return { start: new Date(state.enrollYear + i, 8, 1), end: new Date(state.enrollYear + i + 1, 7, 31, 23, 59, 59) };
+}
+function stageProgress(i) {
+  var r = stageRange(i), p = (Date.now() - r.start.getTime()) / (r.end.getTime() - r.start.getTime());
+  return Math.max(0, Math.min(1, p));
+}
+function daysLeft(i) {
+  return Math.max(0, Math.ceil((stageRange(i).end.getTime() - Date.now()) / 86400000));
+}
+function semesterOf(i) {
+  var p = stageProgress(i);
+  if (p <= 0 || p >= 1) return '';
+  var m = new Date().getMonth();
+  return m >= 8 || m === 0 ? '上学期' : '下学期';
+}
+function phaseOf(p) { return p < 0.34 ? 'early' : (p < 0.72 ? 'mid' : 'late'); }
+function daysSince(ts) { return Math.floor((Date.now() - ts) / 86400000); }
+function toast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(function () { t.classList.remove('show'); }, 1700);
+}
+function taskStats(st) {
+  var done = 0;
+  for (var i = 0; i < st.tasks.length; i++) if (state.checks[st.id + '-t' + i]) done++;
+  return { done: done, total: st.tasks.length };
+}
+function checkStats(st) {
+  var done = 0;
+  for (var i = 0; i < st.checkpoints.length; i++) if (state.checks[st.id + '-c' + i]) done++;
+  return { done: done, total: st.checkpoints.length };
+}
+
+/* SECTION: advice */
+function buildAdvice() {
+  var i = currentIndex(), st = DATA[i], p = stageProgress(i), list = [];
+  var ts = taskStats(st), cs = checkStats(st);
+  var ratio = ts.total ? ts.done / ts.total : 0;
+
+  if (state.records.length === 0) {
+    list.push('先写下今天做了什么，哪怕一行——这是复盘和面试的原料。');
+  } else {
+    var last = state.records.reduce(function (a, b) { return a.ts > b.ts ? a : b; });
+    var gap = daysSince(last.ts);
+    if (gap >= 5) list.push('已经 ' + gap + ' 天没记录了，补一句这段时间最值得写的事。');
+  }
+
+  if (p > 0.06 && p < 0.94) {
+    var diff = Math.round((p - ratio) * 100);
+    if (diff > 18) {
+      var idx = -1;
+      for (var k = 0; k < st.tasks.length; k++) if (!state.checks[st.id + '-t' + k]) { idx = k; break; }
+      if (idx >= 0) list.push('阶段已过 ' + Math.round(p * 100) + '%，清单完成 ' + Math.round(ratio * 100) + '%，本周先啃「' + st.tasks[idx] + '」。');
+    } else if (diff < -18) {
+      var next = DATA[Math.min(3, i + 1)];
+      if (next !== st) list.push('清单跑在时间前面了，可以提前摸一摸' + next.grade + '的「' + next.tasks[0] + '」。');
+    }
+  }
+
+  var pool = st.advice[phaseOf(p)] || st.advice.mid;
+  for (var j = 0; j < pool.length; j++) list.push(pool[j]);
+
+  if (p > 0.62 && cs.done < cs.total) {
+    list.push('接近阶段末，检查点还差 ' + (cs.total - cs.done) + ' 项，优先补齐。');
+  }
+  return list;
+}
+
+/* SECTION: home */
+function renderHome() {
+  var wrap = h('div', 'view');
+  var i = currentIndex(), st = DATA[i], p = stageProgress(i), pct = Math.round(p * 100);
+  var grad = isGraduated();
+
+  var hero = h('section', 'hero');
+  var top = h('div', 'hero-top');
+  var main = h('div', 'hero-main');
+  main.appendChild(h('div', 'eyebrow', grad ? '已毕业 · 回看这四年' : '当前阶段 · ' + st.grade + (semesterOf(i) || '')));
+  main.appendChild(h('h2', '', st.name));
+  main.appendChild(h('div', 'theme', st.theme));
+
+  var ringWrap = h('div', 'ring-wrap');
+  var ring = h('div', 'ring');
+  var inner = h('div', 'ring-in');
+  inner.appendChild(h('b', '', pct + '%'));
+  inner.appendChild(h('span', '', '时间进度'));
+  ring.appendChild(inner);
+  ring.style.background = 'conic-gradient(#ffb020 ' + pct + '%, rgba(255,255,255,.16) 0)';
+  ringWrap.appendChild(ring);
+  top.appendChild(main);
+  top.appendChild(ringWrap);
+  hero.appendChild(top);
+
+  var meta = h('div', 'hero-meta');
+  meta.appendChild(h('span', 'pill', '入学 ' + state.enrollYear + ' 年'));
+  meta.appendChild(h('span', 'pill', '目标 本科就业'));
+  meta.appendChild(h('span', 'pill', '主线 FPGA + 嵌入式'));
+  hero.appendChild(meta);
+
+  var bar = h('div', 'hero-bar');
+  var track = h('div', 'bar-track');
+  var fill = h('div', 'bar-fill');
+  fill.style.width = pct + '%';
+  track.appendChild(fill);
+  var cap = h('div', 'bar-cap');
+  cap.appendChild(h('span', '', st.period));
+  cap.appendChild(h('span', '', grad ? '已毕业' : '距结束 ' + daysLeft(i) + ' 天'));
+  bar.appendChild(track);
+  bar.appendChild(cap);
+  hero.appendChild(bar);
+  wrap.appendChild(hero);
+
+  /* advice */
+  var adv = h('section', 'card advice');
+  var ah = h('div', 'card-h');
+  ah.appendChild(h('span', 'advice-tag', '建议'));
+  ah.appendChild(h('h3', '', '给你的一句话'));
+  var swap = h('button', 'ghost-btn', '换一批');
+  swap.type = 'button';
+  ah.appendChild(swap);
+  adv.appendChild(ah);
+  var listBox = h('div', 'advice-list');
+  var all = buildAdvice();
+  var start = state.tipOffset % all.length;
+  for (var a = 0; a < Math.min(2, all.length); a++) {
+    var item = h('div', 'advice-item');
+    item.appendChild(h('i', '', String(a + 1)));
+    item.appendChild(h('div', '', all[(start + a) % all.length]));
+    listBox.appendChild(item);
+  }
+  adv.appendChild(listBox);
+  swap.addEventListener('click', function () {
+    state.tipOffset = (state.tipOffset + 2) % Math.max(1, all.length);
+    save(); paint(true);
+  });
+  wrap.appendChild(adv);
+
+  /* tasks */
+  var tc = h('section', 'card');
+  var th = h('div', 'card-h');
+  th.appendChild(h('h3', '', '本阶段行动清单'));
+  var ts = taskStats(st);
+  th.appendChild(h('span', 'sub', ts.done + ' / ' + ts.total));
+  tc.appendChild(th);
+  var pl = h('div', 'progress-line');
+  var mt = h('div', 'mini-track');
+  var mf = h('div', 'mini-fill');
+  mf.style.width = (ts.total ? Math.round(ts.done / ts.total * 100) : 0) + '%';
+  mt.appendChild(mf);
+  pl.appendChild(mt);
+  pl.appendChild(h('b', '', Math.round(ts.total ? ts.done / ts.total * 100 : 0) + '%'));
+  tc.appendChild(pl);
+  tc.appendChild(taskList(st));
+  wrap.appendChild(tc);
+
+  /* quick note */
+  var rc = h('section', 'card');
+  var rh = h('div', 'card-h');
+  rh.appendChild(h('h3', '', '我做了的事'));
+  rh.appendChild(h('span', 'sub', '随手记'));
+  rc.appendChild(rh);
+  var ta = h('textarea', 'ta');
+  ta.placeholder = '今天推进了什么，卡在哪一步？';
+  ta.setAttribute('aria-label', '记录今天做过的事');
+  rc.appendChild(ta);
+  var foot = h('div', 'composer-foot');
+  foot.appendChild(h('span', 'hint', '只存在这台设备'));
+  var saveBtn = h('button', 'primary', '保存');
+  saveBtn.type = 'button';
+  saveBtn.disabled = true;
+  foot.appendChild(saveBtn);
+  rc.appendChild(foot);
+  ta.addEventListener('input', function () { saveBtn.disabled = ta.value.trim().length === 0; });
+  saveBtn.addEventListener('click', function () {
+    var v = ta.value.trim();
+    if (!v) return;
+    addRecord(st.id, v);
+    toast('已记下这条进展');
+    paint(false);
+  });
+  wrap.appendChild(rc);
+
+  /* recent */
+  var recent = state.records.slice().sort(function (x, y) { return y.ts - x.ts; }).slice(0, 2);
+  if (recent.length) {
+    var lc = h('section', 'card');
+    var lh = h('div', 'card-h');
+    lh.appendChild(h('h3', '', '最近记录'));
+    var more = h('span', 'sub', '查看全部 ›');
+    more.style.color = '#2f5cff';
+    more.style.cursor = 'pointer';
+    more.addEventListener('click', function () { switchTab('records'); });
+    lh.appendChild(more);
+    lc.appendChild(lh);
+    for (var r = 0; r < recent.length; r++) lc.appendChild(recordRow(recent[r], true));
+    wrap.appendChild(lc);
+  }
+
+  if (!isStandalone()) {
+    var tip = h('button', 'card');
+    tip.type = 'button';
+    tip.style.cssText = 'display:flex;align-items:center;gap:11px;width:100%;text-align:left;background:#fff';
+    var ic = h('div', '', '↓');
+    ic.style.cssText = 'width:34px;height:34px;border-radius:10px;background:#eef2ff;color:#2f5cff;display:flex;align-items:center;justify-content:center;font-size:16px;flex:0 0 auto';
+    var tx = h('div', '');
+    tx.style.flex = '1';
+    var t1 = h('div', '', '装到手机桌面');
+    t1.style.cssText = 'font-size:13px;font-weight:600;color:#16224a';
+    var t2 = h('div', '', '像 App 一样打开，断网也能用');
+    t2.style.cssText = 'font-size:10.5px;color:#6b7488;margin-top:2px';
+    tx.appendChild(t1); tx.appendChild(t2);
+    var ar = h('span', '', '›');
+    ar.style.cssText = 'color:#9aa2b6;font-size:18px';
+    tip.appendChild(ic); tip.appendChild(tx); tip.appendChild(ar);
+    tip.addEventListener('click', installApp);
+    wrap.appendChild(tip);
+  }
+
+  return wrap;
+}
+
+/* SECTION: stage view */
+function renderStages() {
+  var wrap = h('div', 'view');
+  var cur = currentIndex();
+  var selected = state.viewStage || DATA[cur].id;
+  var idx = 0;
+  for (var q = 0; q < DATA.length; q++) if (DATA[q].id === selected) idx = q;
+
+  var seg = h('div', 'seg');
+  for (var s = 0; s < DATA.length; s++) {
+    (function (sd, si) {
+      var b = h('button', 'chipx', sd.grade);
+      b.type = 'button';
+      b.className = 'chipx' + (sd.id === selected ? ' on' : '') + (si === cur ? ' now' : '');
+      b.appendChild(h('i', ''));
+      b.addEventListener('click', function () {
+        state.viewStage = sd.id;
+        save(); paint(false);
+      });
+      seg.appendChild(b);
+    })(DATA[s], s);
+  }
+  wrap.appendChild(seg);
+
+  var st = DATA[idx];
+  var card = h('section', 'card');
+  var head = h('div', 'stage-hero');
+  var badge = h('div', 'stage-badge');
+  badge.appendChild(h('b', '', st.grade));
+  badge.appendChild(h('span', '', '阶段'));
+  var title = h('div', 'stage-title');
+  title.appendChild(h('b', '', st.name));
+  title.appendChild(h('small', '', st.period + ' · ' + st.theme));
+  var tag = h('span', 'state-tag', idx === cur ? '当前阶段' : (idx < cur ? '已走过' : '未开始'));
+  if (idx !== cur) tag.className = 'state-tag ' + (idx < cur ? 'past' : 'next');
+  head.appendChild(badge);
+  head.appendChild(title);
+  head.appendChild(tag);
+  card.appendChild(head);
+
+  var goal = h('div', 'goal');
+  goal.appendChild(h('b', '', '核心目标 · '));
+  goal.appendChild(document.createTextNode(st.goal));
+  card.appendChild(goal);
+
+  var sec1 = h('div', 'sec');
+  var t1 = h('div', 'sec-t', '行动清单');
+  var ts = taskStats(st);
+  var cnt = h('span', '', ts.done + '/' + ts.total);
+  cnt.style.cssText = 'margin-left:auto;font-weight:600;color:#8a92a6;font-size:10.5px';
+  t1.appendChild(cnt);
+  sec1.appendChild(t1);
+  sec1.appendChild(taskList(st));
+  card.appendChild(sec1);
+
+  for (var k = 0; k < st.sections.length; k++) {
+    var sg = st.sections[k];
+    var box = h('div', 'sec' + (sg.warn ? ' warn' : ''));
+    box.appendChild(h('div', 'sec-t', sg.t));
+    var ul = h('ul', '');
+    for (var m = 0; m < sg.items.length; m++) ul.appendChild(h('li', '', sg.items[m]));
+    box.appendChild(ul);
+    card.appendChild(box);
+  }
+
+  var res = h('div', 'sec');
+  res.appendChild(h('div', 'sec-t', '阶段成果'));
+  var rul = h('ul', '');
+  for (var q2 = 0; q2 < st.result.length; q2++) rul.appendChild(h('li', '', st.result[q2]));
+  res.appendChild(rul);
+  card.appendChild(res);
+
+  var cp = h('div', 'sec');
+  var cpt = h('div', 'sec-t', '检查点 · 自测');
+  var cs = checkStats(st);
+  var cps = h('span', '', cs.done + '/' + cs.total + ' 达标');
+  cps.style.cssText = 'margin-left:auto;font-weight:600;color:#8a92a6;font-size:10.5px';
+  cpt.appendChild(cps);
+  cp.appendChild(cpt);
+  for (var c = 0; c < st.checkpoints.length; c++) {
+    (function (ci) {
+      var key = st.id + '-c' + ci;
+      var row = h('div', 'task' + (state.checks[key] ? ' done' : ''));
+      var b = h('div', 'cbox' + (state.checks[key] ? ' on' : ''));
+      b.appendChild(svgCheck());
+      b.addEventListener('click', function () {
+        if (state.checks[key]) delete state.checks[key]; else state.checks[key] = true;
+        save(); paint(true);
+      });
+      row.appendChild(b);
+      row.appendChild(h('p', '', st.checkpoints[ci]));
+      cp.appendChild(row);
+    })(c);
+  }
+  card.appendChild(cp);
+
+  var note = h('div', 'sec');
+  var nt = h('div', 'sec-t', '我做了的事');
+  var saved = h('span', '', '自动保存');
+  saved.style.cssText = 'margin-left:auto;font-weight:500;color:#a3aabb;font-size:10px';
+  nt.appendChild(saved);
+  note.appendChild(nt);
+  var ta = h('textarea', 'ta');
+  ta.placeholder = '这一段做了什么、卡在哪、下一步做什么。\n写给自己看，不用讲文采。';
+  ta.setAttribute('aria-label', st.grade + '阶段记录');
+  ta.value = state.notes[st.id] || '';
+  ta.style.minHeight = '104px';
+  var timer = null;
+  ta.addEventListener('input', function () {
+    state.notes[st.id] = ta.value;
+    saved.textContent = '保存中…';
+    clearTimeout(timer);
+    timer = setTimeout(function () { save(); saved.textContent = '已保存'; }, 400);
+  });
+  note.appendChild(ta);
+  card.appendChild(note);
+
+  wrap.appendChild(card);
+  return wrap;
+}
+
+function taskList(st) {
+  var box = h('div', '');
+  for (var i = 0; i < st.tasks.length; i++) {
+    (function (ti) {
+      var key = st.id + '-t' + ti;
+      var row = h('div', 'task' + (state.checks[key] ? ' done' : ''));
+      var b = h('div', 'cbox' + (state.checks[key] ? ' on' : ''));
+      b.appendChild(svgCheck());
+      b.addEventListener('click', function () {
+        if (state.checks[key]) delete state.checks[key]; else state.checks[key] = true;
+        save(); paint(true);
+      });
+      row.appendChild(b);
+      row.appendChild(h('p', '', st.tasks[ti]));
+      box.appendChild(row);
+    })(i);
+  }
+  return box;
+}
+
+/* SECTION: records view */
+function renderRecords() {
+  var wrap = h('div', 'view');
+
+  var stats = h('section', 'card');
+  var sq = h('div', 'stats');
+  var total = state.records.length;
+  var month = state.records.filter(function (r) {
+    var d = new Date(r.ts), n = new Date();
+    return d.getFullYear() === n.getFullYear() && d.getMonth() === n.getMonth();
+  }).length;
+  var allDone = 0, allTotal = 0;
+  for (var i = 0; i < DATA.length; i++) { var t = taskStats(DATA[i]); allDone += t.done; allTotal += t.total; }
+  var cells = [[String(total), '累计记录'], [String(month), '本月记录'], [allDone + '/' + allTotal, '清单完成']];
+  for (var c = 0; c < cells.length; c++) {
+    var s = h('div', 'stat');
+    s.appendChild(h('b', '', cells[c][0]));
+    s.appendChild(h('span', '', cells[c][1]));
+    sq.appendChild(s);
+  }
+  stats.appendChild(sq);
+  wrap.appendChild(stats);
+
+  var comp = h('section', 'card');
+  var ch = h('div', 'card-h');
+  ch.appendChild(h('h3', '', '补一条记录'));
+  ch.appendChild(h('span', 'sub', '选阶段归档'));
+  comp.appendChild(ch);
+  var ta = h('textarea', 'ta');
+  ta.placeholder = '这段时间做了什么？';
+  ta.setAttribute('aria-label', '新增记录内容');
+  comp.appendChild(ta);
+  var pick = h('div', 'chips');
+  pick.style.marginTop = '10px';
+  var chosen = state.viewStage || DATA[currentIndex()].id;
+  for (var p = 0; p < DATA.length; p++) {
+    (function (sd) {
+      var el = h('button', 'chip' + (sd.id === chosen ? ' on' : ''), sd.grade);
+      el.type = 'button';
+      el.addEventListener('click', function () {
+        chosen = sd.id;
+        for (var x = 0; x < pick.children.length; x++) pick.children[x].classList.remove('on');
+        el.classList.add('on');
+      });
+      pick.appendChild(el);
+    })(DATA[p]);
+  }
+  comp.appendChild(pick);
+  var foot = h('div', 'composer-foot');
+  foot.appendChild(h('span', 'hint', '按日期自动排序'));
+  var add = h('button', 'primary', '添加');
+  add.type = 'button';
+  foot.appendChild(add);
+  comp.appendChild(foot);
+  add.addEventListener('click', function () {
+    var v = ta.value.trim();
+    if (!v) { toast('先写点什么'); return; }
+    addRecord(chosen, v);
+    toast('已添加');
+    paint(false);
+  });
+  wrap.appendChild(comp);
+
+  var listCard = h('section', 'card');
+  var lh = h('div', 'card-h');
+  lh.appendChild(h('h3', '', '进展时间线'));
+  lh.appendChild(h('span', 'sub', total + ' 条'));
+  listCard.appendChild(lh);
+
+  var chips = h('div', 'chips');
+  chips.style.marginBottom = '4px';
+  var filters = [{ k: 'all', n: '全部' }].concat(DATA.map(function (d) { return { k: d.id, n: d.grade }; }));
+  for (var f = 0; f < filters.length; f++) {
+    (function (ft) {
+      var el = h('button', 'chip' + (state.filter === ft.k ? ' on' : ''), ft.n);
+      el.type = 'button';
+      el.addEventListener('click', function () { state.filter = ft.k; save(); paint(true); });
+      chips.appendChild(el);
+    })(filters[f]);
+  }
+  listCard.appendChild(chips);
+
+  var rows = state.records.slice().sort(function (a, b) { return b.ts - a.ts; });
+  if (state.filter !== 'all') rows = rows.filter(function (r) { return r.stage === state.filter; });
+  if (rows.length === 0) {
+    listCard.appendChild(h('div', 'empty', '还没有记录。\n从今天做过的一件小事开始写。'));
+  } else {
+    for (var r = 0; r < rows.length; r++) listCard.appendChild(recordRow(rows[r], false));
+  }
+  wrap.appendChild(listCard);
+  return wrap;
+}
+
+function recordRow(rec, compact) {
+  var row = h('div', 'rec');
+  var d = new Date(rec.ts);
+  var date = h('div', 'rec-date');
+  date.appendChild(h('b', '', String(d.getDate())));
+  date.appendChild(h('span', '', (d.getMonth() + 1) + '月'));
+  var body = h('div', 'rec-body');
+  var st = DATA.filter(function (x) { return x.id === rec.stage; })[0];
+  body.appendChild(h('span', 'tag', st ? st.grade + ' · ' + st.name : '未分类'));
+  body.appendChild(h('p', '', rec.text));
+  row.appendChild(date);
+  row.appendChild(body);
+  if (!compact) {
+    var del = h('button', 'del', '×');
+    del.type = 'button';
+    del.setAttribute('aria-label', '删除这条记录');
+    del.addEventListener('click', function () {
+      if (!confirm('删除这条记录？')) return;
+      state.records = state.records.filter(function (x) { return x.id !== rec.id; });
+      save(); paint(true);
+      toast('已删除');
+    });
+    row.appendChild(del);
+  }
+  return row;
+}
+
+function addRecord(stageId, text) {
+  state.records.push({
+    id: 'r' + Date.now() + Math.random().toString(16).slice(2, 6),
+    ts: Date.now(), stage: stageId, text: text
+  });
+  save();
+}
+
+/* SECTION: me view */
+function renderMe() {
+  var wrap = h('div', 'view');
+
+  var prog = h('section', 'card');
+  var ph = h('div', 'card-h');
+  ph.appendChild(h('h3', '', '四年进度'));
+  ph.appendChild(h('span', 'sub', '按行动清单计'));
+  prog.appendChild(ph);
+  for (var i = 0; i < DATA.length; i++) {
+    (function (st, si) {
+      var t = taskStats(st);
+      var row = h('div', 'stage-prog');
+      var top = h('div', 'sp-top');
+      top.appendChild(h('b', '', st.grade + ' · ' + st.name));
+      top.appendChild(h('span', '', t.done + '/' + t.total));
+      row.appendChild(top);
+      var track = h('div', 'mini-track');
+      var fill = h('div', 'mini-fill');
+      var width = t.total ? Math.round(t.done / t.total * 100) : 0;
+      fill.style.width = width + '%';
+      if (si < currentIndex()) fill.style.background = '#c9d4ea';
+      track.appendChild(fill);
+      row.appendChild(track);
+      prog.appendChild(row);
+    })(DATA[i], i);
+  }
+  wrap.appendChild(prog);
+
+  var set = h('section', 'card');
+  var sh = h('div', 'card-h');
+  sh.appendChild(h('h3', '', '设置'));
+  set.appendChild(sh);
+
+  var row1 = h('button', 'setting-row');
+  row1.type = 'button';
+  row1.style.width = '100%';
+  row1.style.textAlign = 'left';
+  var t1 = h('div', '');
+  t1.appendChild(h('div', 't', '入学年份'));
+  t1.appendChild(h('div', 'd', '用于自动判断年级与当前阶段'));
+  row1.appendChild(t1);
+  row1.appendChild(h('span', 'v', state.enrollYear + ' 级 ›'));
+  row1.addEventListener('click', openSheet);
+  set.appendChild(row1);
+
+  var rowI = h('button', 'setting-row');
+  rowI.type = 'button';
+  rowI.style.width = '100%';
+  rowI.style.textAlign = 'left';
+  var ti = h('div', '');
+  ti.appendChild(h('div', 't', '安装到桌面'));
+  ti.appendChild(h('div', 'd', '装好后像 App 一样打开，断网也能用'));
+  rowI.appendChild(ti);
+  rowI.appendChild(h('span', 'v', '去安装 ›'));
+  rowI.addEventListener('click', installApp);
+  set.appendChild(rowI);
+
+  var row2 = h('div', 'setting-row');
+  var t2 = h('div', '');
+  t2.appendChild(h('div', 't', '数据存储'));
+  t2.appendChild(h('div', 'd', '记录、勾选与笔记都保存在本机浏览器'));
+  row2.appendChild(t2);
+  var clear = h('button', 'text-btn', '清空');
+  clear.type = 'button';
+  clear.addEventListener('click', function () {
+    if (!confirm('清空所有记录、勾选和笔记？此操作不可撤销。')) return;
+    state.records = [];
+    state.checks = {};
+    state.notes = {};
+    state.tipOffset = 0;
+    save(); paint(false);
+    toast('已清空');
+  });
+  row2.appendChild(clear);
+  set.appendChild(row2);
+
+  wrap.appendChild(set);
+
+  var about = h('section', 'card');
+  var ab = h('div', 'card-h');
+  ab.appendChild(h('h3', '', '关于'));
+  about.appendChild(ab);
+  about.appendChild(h('div', 'about', '依据《电子信息工程大学生涯规划》整理：以数字电路 / FPGA 为尖刀，嵌入式软硬结合为底盘，本科就业为目标。\n计划可以根据实际情况随时调整，慢一点没关系。'));
+  wrap.appendChild(about);
+  return wrap;
+}
+
+/* SECTION: paint */
+function paint(keepScroll) {
+  var scr = document.getElementById('screen');
+  var top = keepScroll ? scr.scrollTop : 0;
+  var view;
+  if (state.tab === 'stages') view = renderStages();
+  else if (state.tab === 'records') view = renderRecords();
+  else if (state.tab === 'me') view = renderMe();
+  else view = renderHome();
+  scr.textContent = '';
+  scr.appendChild(view);
+  scr.scrollTop = top;
+
+  document.getElementById('gradeChipTxt').textContent = isGraduated() ? '已毕业' : DATA[currentIndex()].grade;
+  var tabs = document.querySelectorAll('.tab');
+  for (var i = 0; i < tabs.length; i++) tabs[i].classList.toggle('on', tabs[i].getAttribute('data-tab') === state.tab);
+  updateGreet();
+  save();
+}
+
+function switchTab(tab) {
+  state.tab = tab;
+  if (tab === 'stages' && !state.viewStage) state.viewStage = DATA[currentIndex()].id;
+  paint(false);
+}
+
+function updateGreet() {
+  var now = new Date(), hr = now.getHours();
+  var word = hr < 6 ? '夜深了' : (hr < 11 ? '早上好' : (hr < 14 ? '中午好' : (hr < 18 ? '下午好' : '晚上好')));
+  var i = currentIndex(), st = DATA[i];
+  document.getElementById('greetWord').textContent = word;
+  document.getElementById('greetTitle').textContent = isGraduated() ? '四年走完了，慢慢来' : st.grade + ' · ' + st.name;
+  var sem = semesterOf(i);
+  document.getElementById('greetDate').textContent =
+    (now.getMonth() + 1) + '月' + now.getDate() + '日' + (sem ? ' · ' + st.grade + sem : '');
+}
+
+/* SECTION: events */
+document.getElementById('tabbar').addEventListener('click', function (e) {
+  var btn = e.target.closest ? e.target.closest('.tab') : null;
+  if (btn) switchTab(btn.getAttribute('data-tab'));
+});
+
+var sheet = document.getElementById('sheet');
+var yearSelect = document.getElementById('yearSelect');
+(function fillYears() {
+  var now = academicStartYear();
+  for (var y = now; y >= now - 8; y--) {
+    var o = document.createElement('option');
+    o.value = String(y);
+    o.textContent = y + ' 级';
+    yearSelect.appendChild(o);
+  }
+})();
+
+function openSheet() {
+  yearSelect.value = String(state.enrollYear);
+  sheet.classList.add('show');
+}
+document.getElementById('gradeBtn').addEventListener('click', openSheet);
+sheet.addEventListener('click', function (e) {
+  if (e.target.getAttribute && e.target.getAttribute('data-close')) sheet.classList.remove('show');
+});
+document.getElementById('saveYear').addEventListener('click', function () {
+  state.enrollYear = parseInt(yearSelect.value, 10) || academicStartYear();
+  state.viewStage = DATA[currentIndex()].id;
+  state.tipOffset = 0;
+  save();
+  sheet.classList.remove('show');
+  paint(false);
+  toast('已定位到' + DATA[currentIndex()].grade);
+});
+
+/* SECTION: install */
+var deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', function (e) {
+  e.preventDefault();
+  deferredPrompt = e;
+});
+function isStandalone() {
+  return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
+}
+function installApp() {
+  if (isStandalone()) { toast('已经在桌面上了'); return; }
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(function () { deferredPrompt = null; });
+    return;
+  }
+  openInstallHelp();
+}
+function openInstallHelp() {
+  var wrap = h('div', 'sheet show');
+  var mask = h('div', 'sheet-mask');
+  mask.addEventListener('click', function () { if (wrap.parentNode) wrap.parentNode.removeChild(wrap); });
+  var panel = h('div', 'sheet-panel');
+  panel.appendChild(h('h4', '', '安装到桌面'));
+  panel.appendChild(h('p', 'sd', '用手机自带浏览器打开本页，再按下面的步骤操作。'));
+  var steps = [
+    ['iPhone / iPad', '用 Safari 打开本页，点底部「分享」按钮，选「添加到主屏幕」，再点「添加」。'],
+    ['安卓手机', '用 Chrome 或系统浏览器打开，点右上角「⋮」，选「安装应用」或「添加到主屏幕」。'],
+    ['在微信里打开', '点右上角「…」，选「在浏览器打开」，再按上面的步骤操作。']
+  ];
+  var ul = h('ul', '');
+  ul.style.cssText = 'margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:11px';
+  for (var i = 0; i < steps.length; i++) {
+    var li = h('li', '');
+    li.style.cssText = 'font-size:12px;line-height:1.65;color:#39415a';
+    var b = h('b', '', steps[i][0]);
+    b.style.cssText = 'display:block;font-size:12px;color:#16224a;margin-bottom:2px';
+    li.appendChild(b);
+    li.appendChild(document.createTextNode(steps[i][1]));
+    ul.appendChild(li);
+  }
+  panel.appendChild(ul);
+  var actions = h('div', 'sheet-actions');
+  var ok = h('button', 'btn-solid', '知道了');
+  ok.type = 'button';
+  ok.addEventListener('click', function () { if (wrap.parentNode) wrap.parentNode.removeChild(wrap); });
+  actions.appendChild(ok);
+  panel.appendChild(actions);
+  wrap.appendChild(mask);
+  wrap.appendChild(panel);
+  document.getElementById('phone').appendChild(wrap);
+}
+
+/* SECTION: init */
+if (!state.viewStage) state.viewStage = DATA[currentIndex()].id;
+paint(false);
+
+if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('./sw.js').catch(function () {});
+  });
+}
+
+var splash = document.getElementById('splash');
+setTimeout(function () {
+  splash.classList.add('hide');
+  setTimeout(function () { if (splash.parentNode) splash.parentNode.removeChild(splash); }, 560);
+}, 760);
+</script>
+</body>
+</html>
